@@ -1,0 +1,68 @@
+body{
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    background-color: #25222d;
+}
+
+.container{
+    padding: 50px;
+    width: 50%;
+}
+
+form {
+}
+
+input[type=text], input[type=password], input[type=tel], input[type=email], select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #dadada;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: transparent;
+    color: whitesmoke;
+}
+
+select option {
+    background-color: #25222d;
+    color: white;
+}
+
+select option:hover {
+    background-color: #FFFFFF;
+    color: #25222d;
+}
+    
+button{
+    background: #0dcc4d;
+    border: none;
+    padding: 20px;
+    margin-top: 20px;
+    width: 100%;
+    border-radius: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color:white;
+
+    transition: all 200ms ease-out;
+}
+
+button:hover{
+    background-color: #18c390;
+}
+
+.new-user-button{
+    background: transparent;
+}
+
+.new-user-button:hover{
+    color: #25222d;
+    background-color: #FFFFFF;
+}
+
+input[type=checkbox]{
+    padding: 50px;
+}
