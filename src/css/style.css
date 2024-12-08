@@ -14,7 +14,7 @@ body{
 form {
 }
 
-input[type=text], input[type=password], input[type=tel], input[type=email], select {
+input[type=text], input[type=password], input[type=tel], input[type=email], input[type=number], input[type=date], select {
     width: 100%;
     padding: 12px 20px;
     margin: 8px 0;
@@ -65,4 +65,76 @@ button:hover{
 
 input[type=checkbox]{
     padding: 50px;
+}
+
+table{
+    max-width:100%;
+    white-space:nowrap;
+}
+
+table, th, tr, td {
+    border: 1px solid #FFFFFF;
+    border-collapse: collapse;
+}
+
+thead {
+    background-color: #225042;
+    border: 1px solid #FFFFFF;
+    position: sticky;
+    top: 0;
+    z-index: 1; 
+}
+
+td {
+    padding: 5px;
+}
+
+th {
+    font-size: 10px;
+    padding: 10px 15px;
+}
+
+#query-form{
+    margin-bottom: 20px;
+}
+
+#search-button{
+    width: 50%;
+}
+
+#table-container {
+    height: 500px;
+    width: 70%;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    margin-left: 20px;
+}
+
+ul{
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    text-decoration: none;
+    list-style: none;
+    padding: 0;
+    margin-top: 50px;
+}
+
+li a{
+    text-decoration: none;
+    background: #0dcc4d;
+    border: none;
+    padding: 20px;
+    margin-top: 20px;
+    width: 100%;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color:white;
+
+    transition: all 200ms ease-out;
+}
+
+li a:hover{
+    background-color: #18c390;
 }

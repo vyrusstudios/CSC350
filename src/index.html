@@ -10,24 +10,29 @@
     <div class="container" id="sign-up" style="display: none;">
             <h1>CREATE NEW CUSTOMER</h1>
 
-            <form action="pages/carSearch.html" method="post">
+            <form id="signup-form" method="post">
                 <label for="name"><b>First and Last Name</b></label>
                 <input type="text" placeholder="ex. John Doe" name="name" required>
-
+        
                 <label for="email"><b>Email</b></label>
-                <input type="email"placeholder="example@domain.com" name="email" id="email-input">
+                <input type="email" placeholder="example@domain.com" name="email" id="email-input" required>
                 
                 <label for="password"><b>Password</b></label>
-                <input type="password"placeholder="At least 8 characters!" name="password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" id="password-input">
+                <input type="password" placeholder="At least 8 characters!" name="password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" id="password-input" required>
             
                 <label for="phone"><b>Phone #</b></label>
                 <input type="tel" placeholder="###-####" name="phone" pattern="[0-9]{3}-[0-9]{4}" required />
-
-                <label for="address"><b>Address</b></label>
-                <input type="text" placeholder="123 Awesome Rd" name="address" required>
-
+        
+                <h3>Address Information</h3>
+        
+                <label for="address-line1"><b>Address Line 1</b></label>
+                <input type="text" name="address-line1" placeholder="123 Awesome Rd" required>
+        
+                <label for="address-line2"><b>Address Line 2</b></label>
+                <input type="text" name="address-line2" placeholder="Apt 4B (optional)">
+        
                 <label for="city"><b>City</b></label>
-                <input type="text" placeholder="Coolsville" name="city" required>
+                <input type="text" name="city" placeholder="Coolsville" required>
 
                 <label for="state"><b>State<b></label>
                 <select name="state"> 
@@ -83,6 +88,12 @@
                     <option value="WI">Wisconsin</option>
                     <option value="WY">Wyoming</option>
                 </select>
+
+                <label for="postal-code"><b>Postal Code</b></label>
+                <input type="text" name="postal-code" placeholder="12345" required>
+        
+                <label for="country"><b>Country</b></label>
+                <input type="text" name="country" placeholder="USA" required>
             
                 <button type="submit">Login</button>
             </form>
@@ -92,7 +103,7 @@
     <div class="container" id="sign-in">
         <h1>WELCOME BACK!</h1>
 
-        <form action="pages/carSearch.html" method="post">
+        <form id="signin-form" method="post">
             <label for="email"><b>Email</b></label>
             <input type="email"placeholder="example@domain.com" name="email" id="email-input">
             
@@ -122,6 +133,99 @@
                 signIn.style.display = "none";
             }
         }
+
+        document.getElementById('signup-form').addEventListener('submit', function (e) {
+            e.preventDefault(); // Prevent default form submission
+
+            // Get form data
+            const formData = new FormData(e.target);
+
+            // Create customer data object from form data
+            const customerData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                phone: formData.get('phone'),
+                address_line1: formData.get('address-line1'),
+                address_line2: formData.get('address-line2'),
+                city: formData.get('city'),
+                state: formData.get('state'),
+                postal_code: formData.get('postal-code'),
+                country: formData.get('country'),
+                address_description: formData.get('address-description') // optional
+            };
+
+            // Check that the required address fields are filled out
+            if (!customerData.address_line1 || !customerData.city || !customerData.state || !customerData.postal_code) {
+                alert('Please fill out all required address fields.');
+                return;
+            }
+
+            // Submit customer data to backend API
+            fetch('https://csc-350-backend.vercel.app/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(customerData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Customer created successfully!') {
+                    alert('Customer created successfully!');
+                    // Optionally redirect or clear the form here
+                    localStorage.setItem('userEmail', customerData.email);
+                    window.location.href = './pages/home.html';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error submitting the form.');
+            });
+        });
+
+        document.getElementById('signin-form').addEventListener('submit', function (e) {
+            e.preventDefault(); // Prevent default form submission
+
+            // Get form data
+            const formData = new FormData(e.target);
+            const signInData = {
+                email: formData.get('email'),
+                password: formData.get('password'),
+            };
+
+            // Submit data to backend API
+            fetch('https://csc-350-backend.vercel.app/signin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(signInData),
+            })
+            .then(response => {
+                // Check if response is valid JSON and parse it
+                if (response.ok) {
+                    return response.json(); // Only parse if the response is valid
+                }
+                throw new Error('Failed to fetch');
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Login successful!');
+                    // Redirect or store session here
+                    localStorage.setItem('userEmail', signInData.email);
+                    window.location.href = './pages/home.html'; // Example redirect to dashboard page
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error submitting the form.');
+            });
+        });
     </script>
 </body>
 </html>

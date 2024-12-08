@@ -7,8 +7,102 @@
     <title>Vyrus Rental Co. | Vehicle Search</title>
 </head>
 <body>
-    <div class="container" style="width: 80%;">
+    <div class="container">
         <h1>VEHICLE SEARCH</h1>
+
+        <form id="queryForm">
+            <label for="manufacturer">Manufacturer:</label>
+            <input type="text" id="manufacturer" name="manufacturer"><br><br>
+    
+            <label for="model">Model:</label>
+            <input type="text" id="model" name="model"><br><br>
+    
+            <label for="year">Year:</label>
+            <input type="number" id="year" name="year"><br><br>
+    
+            <button type="submit" id="search-button">Search</button>
+        </form>
+        
     </div>
+
+    <div id="table-container">
+        <table id="vehicle-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Division</th>
+                    <th>Region</th>
+                    <th>Country</th>
+                    <th>Manufacturer</th>
+                    <th>Name</th>
+                    <th>Year</th>
+                    <th>Model</th>
+                    <th>Doors</th>
+                    <th>Cylinders</th>
+                    <th>Automatic?</th>
+                    <th>Air Conditioning?</th>
+                    <th>Engine Type</th>
+                    <th>Purchase Price</th>
+                    <th>Buyback Agreed Price</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('queryForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Capture form data
+        const manufacturer = document.getElementById('manufacturer').value.trim();
+        const model = document.getElementById('model').value.trim();
+        const year = document.getElementById('year').value.trim();
+
+        // Build the query string based on the form inputs, only include non-empty values
+        let query = '';
+        
+        if (manufacturer) query += `manufacturer=${manufacturer}&`;
+        if (model) query += `model=${model}&`;
+        if (year) query += `year=${year}&`;
+
+        // Remove trailing ampersand if present
+        query = query ? '?' + query.slice(0, -1) : '';
+
+        // Make the fetch request with dynamic query parameters
+        fetch('https://csc-350-backend.vercel.app/vehicles' + query)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('#vehicle-table tbody');
+                tableBody.innerHTML = ''; // Clear previous results
+
+                // Loop through the data and create rows
+                data.forEach(vehicle => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${vehicle.vehicle_id}</td>
+                        <td>${vehicle.division}</td>
+                        <td>${vehicle.region}</td>
+                        <td>${vehicle.country}</td>
+                        <td>${vehicle.manufacturer}</td>
+                        <td>${vehicle.car_name}</td>
+                        <td>${vehicle.year}</td>
+                        <td>${vehicle.model}</td>
+                        <td>${vehicle.doors}</td>
+                        <td>${vehicle.cylinders}</td>
+                        <td>${vehicle.automatic}</td>
+                        <td>${vehicle.air_cond}</td>
+                        <td>${vehicle.engine_type}</td>
+                        <td>${vehicle.purchase_price}</td>
+                        <td>${vehicle.buyback_agreed_price}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+        });
+        </script>
 </body>
 </html>

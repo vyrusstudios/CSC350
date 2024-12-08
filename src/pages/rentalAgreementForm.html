@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <title>Vyrus Rental Co. | Vehicle Search</title>
+</head>
+<body>
+    <div class="container">
+        <h1>RENTAL AGREEMENT</h1>
+        
+        <form id="rental-form">
+            <label for="customer-name">Customer Name:</label>
+            <input type="text" id="customer-name" name="customer-name" readonly>
+        
+            <label for="vehicle-id">Vehicle ID:</label>
+            <input type="number" id="vehicle-id" name="vehicle-id" required>
+        
+            <label for="store-id">Store ID:</label>
+            <input type="number" id="store-id" name="store-id" required>
+        
+            <label for="insurance-company-id">Insurance Company ID (Optional):</label>
+            <input type="number" id="insurance-company-id" name="insurance-company-id">
+        
+            <label for="rental-start-date">Rental Start Date:</label>
+            <input type="date" id="rental-start-date" name="rental-start-date" required>
+        
+            <label for="rental-end-date">Rental End Date:</label>
+            <input type="date" id="rental-end-date" name="rental-end-date" required>
+        
+            <label for="total-amount">Total Amount:</label>
+            <input type="text" id="total-amount" name="total-amount" readonly>
+        
+            <button type="submit">Create Rental Agreement</button>
+        </form>
+
+        <div id="rental-agreement-output">
+
+        </div>
+    </div>
+
+    <script>
+        async function fetchCustomerName() {
+            const email = localStorage.getItem('userEmail'); // Retrieve the email from localStorage
+
+            if (!email) {
+                console.error('No email found in localStorage');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://csc-350-backend.vercel.app/customer?email=${encodeURIComponent(email)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch customer details');
+                }
+
+                const customer = await response.json();
+
+                localStorage.setItem('userID', customer.customer_id);
+
+                // Display the customer's name in the form
+                document.getElementById('customer-name').value = customer.customer_name;
+
+                console.log('Customer fetched:', customer);
+            } catch (err) {
+                console.error('Error fetching customer:', err);
+                alert('Could not fetch customer details.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchCustomerName);
+
+        document.getElementById('vehicle-id').addEventListener('change', async function () {
+            const vehicleId = this.value; // Get the selected vehicle ID
+            const startDate = document.getElementById('rental-start-date').value;
+            const endDate = document.getElementById('rental-end-date').value;
+
+            // Check if a vehicle ID is provided
+            if (!vehicleId) {
+                alert('Please enter a valid Vehicle ID.');
+                return;
+            }
+
+            try {
+                // Fetch vehicle price from the backend
+                const response = await fetch(`https://csc-350-backend.vercel.app/vehicle-price?vehicle_id=${vehicleId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch vehicle price');
+                }
+
+                const data = await response.json();
+                const dailyRate = data.daily_rate;
+
+                // Calculate the total price if start and end dates are provided
+                if (startDate && endDate) {
+                    const rentalDays = calculateRentalDays(startDate, endDate);
+                    if (rentalDays <= 0) {
+                        alert('The rental end date must be after the start date.');
+                        return;
+                    }
+
+                    const totalPrice = dailyRate * rentalDays;
+
+                    // Update the Total Price field
+                    document.getElementById('total-amount').value = totalPrice.toFixed(2); // Ensure 2 decimal places
+                }
+            } catch (err) {
+                console.error('Error fetching vehicle price:', err);
+                alert('Could not fetch vehicle price. Please try again.');
+            }
+        });
+
+        // Helper function to calculate the number of rental days
+        function calculateRentalDays(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+        }
+
+        // Update total price when rental start or end date changes
+        document.getElementById('rental-start-date').addEventListener('change', () => {
+            document.getElementById('vehicle-id').dispatchEvent(new Event('change'));
+        });
+        document.getElementById('rental-end-date').addEventListener('change', () => {
+            document.getElementById('vehicle-id').dispatchEvent(new Event('change'));
+        });
+
+        document.getElementById('rental-form').addEventListener('submit', async function (e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            // Collect form data
+            const customer_id = localStorage.getItem('userID');
+            const vehicle_id = document.getElementById('vehicle-id').value;
+            const store_id = document.getElementById('store-id').value;
+            const insurance_company_id = document.getElementById('insurance-company-id').value || null;
+            const rental_start_date = document.getElementById('rental-start-date').value;
+            const rental_end_date = document.getElementById('rental-end-date').value;
+            const total_amount = document.getElementById('total-amount').value;
+
+            // Create the data object to send to the backend
+            const rentalData = {
+                customer_id,
+                vehicle_id,
+                store_id,
+                insurance_company_id,
+                rental_start_date,
+                rental_end_date,
+                total_amount
+            };
+
+            try {
+                // Send the data to the backend
+                const response = await fetch('https://csc-350-backend.vercel.app/create-rental-agreement', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(rentalData)
+                });
+
+                // Parse the backend response
+                const result = await response.json();
+
+                if (result.success) {
+                    // Display the rental agreement details
+                    const rentalAgreement = result.rental_agreement;
+                    displayRentalAgreement(rentalAgreement);
+                } else {
+                    alert('Error creating rental agreement: ' + result.message);
+                    const outputDiv = document.getElementById('rental-agreement-output').innerHTML = '';
+                }
+            } catch (err) {
+                console.error('Error submitting form:', err);
+                const outputDiv = document.getElementById('rental-agreement-output').innerHTML = '';
+                alert('Failed to create rental agreement. Please try again.');
+            }
+        });
+
+        // Function to display the rental agreement on the page
+        function displayRentalAgreement(rentalAgreement) {
+            const outputDiv = document.getElementById('rental-agreement-output');
+            const customerName = document.getElementById('customer-name').value;
+            // Format the rental agreement details as HTML
+            outputDiv.innerHTML = `
+                <h3>Rental Agreement Created</h3>
+                <p><strong>Agreement ID:</strong> ${rentalAgreement.rental_agreement_id}</p>
+                <p><strong>Customer ID:</strong> ${rentalAgreement.customer_id}</p>
+                <p><strong>Vehicle ID:</strong> ${rentalAgreement.vehicle_id}</p>
+                <p><strong>Store ID:</strong> ${rentalAgreement.store_id}</p>
+                <p><strong>Insurance Company ID:</strong> ${rentalAgreement.insurance_company_id || 'None'}</p>
+                <p><strong>Rental Start Date:</strong> ${rentalAgreement.rental_start_date}</p>
+                <p><strong>Rental End Date:</strong> ${rentalAgreement.rental_end_date}</p>
+                <p><strong>Total Amount:</strong> $${rentalAgreement.total_amount}</p>
+                <p><strong>Agreement Date:</strong> ${rentalAgreement.rental_agreement_date}</p>
+                <p><strong>Customer Signature:</strong> ${customerName}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
